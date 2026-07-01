@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FAQ 챗봇 테스트 페이지</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif;
+      background: #f5f7fa;
+      color: #2d3748;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    /* ── 상단 안내 배너 ── */
+    .notice {
+      background: #fffbe6;
+      border: 1px solid #ffe58f;
+      border-radius: 10px;
+      padding: 14px 20px;
+      font-size: 13px;
+      color: #7a5c00;
+      max-width: 480px;
+      width: 100%;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+    .notice strong { color: #d48806; }
+
+    /* ── 챗봇 카드 ── */
+    .chat-card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+      width: 100%;
+      max-width: 480px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* 헤더 */
+    .chat-header {
+      background: #4a90d9;
+      padding: 18px 20px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .chat-header .avatar {
+      width: 40px; height: 40px;
+      background: rgba(255,255,255,0.25);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+    }
+    .chat-header .info h2 { font-size: 15px; font-weight: 700; }
+    .chat-header .info p  { font-size: 12px; opacity: 0.85; margin-top: 2px; }
+
+    /* 대화창 */
+    .chat-body {
+      padding: 20px;
+      min-height: 300px;
+      max-height: 420px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      background: #f8fafc;
+    }
+
+    /* 말풍선 */
+    .bubble {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-width: 88%;
+    }
+    .bubble.bot  { align-self: flex-start; }
+    .bubble.user { align-self: flex-end; }
+
+    .bubble .label {
+      font-size: 11px;
+      color: #94a3b8;
+      padding: 0 4px;
+    }
+    .bubble.user .label { text-align: right; }
+
+    .bubble .text {
+      padding: 11px 15px;
+      border-radius: 14px;
+      font-size: 14px;
+      line-height: 1.6;
+      white-space: pre-line;
+    }
+    .bubble.bot  .text { background: #fff; border: 1px solid #e2e8f0; border-radius: 4px 14px 14px 14px; }
+    .bubble.user .text { background: #4a90d9; color: #fff; border-radius: 14px 4px 14px 14px; }
+
+    /* 버튼 그룹 */
+    .btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .btn-chip {
+      background: #fff;
+      border: 1.5px solid #4a90d9;
+      color: #4a90d9;
+      border-radius: 20px;
+      padding: 7px 14px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+    .btn-chip:hover { background: #4a90d9; color: #fff; }
+
+    .btn-back {
+      background: none;
+      border: none;
+      color: #94a3b8;
+      font-size: 12px;
+      cursor: pointer;
+      padding: 4px 0;
+      font-family: inherit;
+      text-decoration: underline;
+    }
+    .btn-back:hover { color: #4a90d9; }
+
+    /* 직접 입력창 */
+    .chat-input-area {
+      display: flex;
+      gap: 8px;
+      padding: 14px 16px;
+      border-top: 1px solid #e2e8f0;
+      background: #fff;
+    }
+    .chat-input-area input {
+      flex: 1;
+      padding: 10px 14px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 24px;
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      transition: border 0.15s;
+    }
+    .chat-input-area input:focus { border-color: #4a90d9; }
+    .chat-input-area button {
+      background: #4a90d9;
+      color: #fff;
+      border: none;
+      border-radius: 24px;
+      padding: 10px 18px;
+      font-size: 13px;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 600;
+      transition: background 0.15s;
+    }
+    .chat-input-area button:hover { background: #357abd; }
+
+    /* 로딩 상태 */
+    .loading-dot {
+      display: flex; gap: 4px; padding: 8px 0;
+    }
+    .loading-dot span {
+      width: 7px; height: 7px;
+      background: #4a90d9;
+      border-radius: 50%;
+      animation: bounce 1.2s infinite;
+    }
+    .loading-dot span:nth-child(2) { animation-delay: 0.2s; }
+    .loading-dot span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes bounce {
+      0%, 80%, 100% { transform: translateY(0); }
+      40%           { transform: translateY(-6px); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 안내 배너 -->
+  <div class="notice">
+    ⚙️ <strong>테스트 전 확인하세요</strong><br>
+    아래 코드에서 <strong>https://script.google.com/macros/s/AKfycbzgpK48r1rF_BGjeoxXTgmkfD9lrXbLPCKL-QW0tFfoneBaxTjDMTlFJT9xkkXg9egz8g/exec</strong> 부분을<br>
+    앱스스크립트 배포 주소로 바꾼 뒤 저장하세요.
+  </div>
+
+  <!-- 챗봇 카드 -->
+  <div class="chat-card">
+
+    <div class="chat-header">
+      <div class="avatar">💬</div>
+      <div class="info">
+        <h2>자주 묻는 질문</h2>
+        <p>궁금한 점을 빠르게 찾아드릴게요</p>
+      </div>
+    </div>
+
+    <div class="chat-body" id="chatBody"></div>
+
+    <div class="chat-input-area" id="inputArea" style="display:none;">
+      <input type="text" id="searchInput" placeholder="직접 검색어를 입력해 주세요">
+      <button onclick="searchFaq()">검색</button>
+    </div>
+
+  </div>
+
+  <script>
+    // ⬇️ 앱스스크립트 배포 주소로 바꿔주세요
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzgpK48r1rF_BGjeoxXTgmkfD9lrXbLPCKL-QW0tFfoneBaxTjDMTlFJT9xkkXg9egz8g/exec';
+
+    let faqs = [];
+
+    // ── 페이지 시작 시 FAQ 데이터 불러오기 ──
+    window.addEventListener('DOMContentLoaded', () => {
+      appendLoading();
+      fetch(SCRIPT_URL + '?type=faq')
+        .then(res => res.json())
+        .then(json => {
+          removeLoading();
+          if (json.result === 'success' && json.data.length > 0) {
+            faqs = json.data;
+            appendBot('안녕하세요! 😊\n궁금한 내용의 분야를 골라 주세요.');
+            showCategories();
+          } else {
+            appendBot('FAQ 데이터를 불러오지 못했어요.\n스프레드시트의 FAQ 시트를 확인해 주세요.');
+          }
+        })
+        .catch(() => {
+          removeLoading();
+          appendBot('연결에 문제가 생겼어요.\n앱스스크립트 배포 주소를 다시 확인해 주세요.');
+        });
+    });
+
+    // ── 카테고리 목록 보여주기 ──
+    function showCategories() {
+      document.getElementById('inputArea').style.display = 'none';
+      const categories = [...new Set(faqs.map(f => f.category))];
+      const buttons = categories.map(cat => ({
+        label: cat,
+        onClick: () => selectCategory(cat)
+      }));
+      appendBotButtons(buttons);
+    }
+
+    // ── 카테고리 선택 ──
+    function selectCategory(category) {
+      appendUser(category);
+      const filtered = faqs.filter(f => f.category === category);
+      appendBot(`📂 "${category}" 관련 질문이에요.\n아래에서 골라 주세요.`);
+      const buttons = filtered.map((faq, i) => ({
+        label: faq.question,
+        onClick: () => selectQuestion(category, i)
+      }));
+      buttons.push({ label: '⬅ 처음으로 돌아가기', onClick: () => { appendUser('처음으로'); appendBot('처음 화면으로 돌아갈게요 😊'); showCategories(); } });
+      appendBotButtons(buttons);
+    }
+
+    // ── 질문 선택 ──
+    function selectQuestion(category, index) {
+      const filtered = faqs.filter(f => f.category === category);
+      const faq = filtered[index];
+      appendUser(faq.question);
+      appendBot('✅ ' + faq.answer);
+
+      const buttons = [
+        { label: '다른 질문 보기', onClick: () => { appendUser('다른 질문 보기'); selectCategory(category); } },
+        { label: '처음으로 돌아가기', onClick: () => { appendUser('처음으로'); appendBot('처음 화면으로 돌아갈게요 😊'); showCategories(); } },
+        { label: '원하는 답을 못 찾았어요', onClick: () => showSearchInput() }
+      ];
+      appendBotButtons(buttons);
+    }
+
+    // ── 직접 검색 입력창 열기 ──
+    function showSearchInput() {
+      appendUser('직접 검색할게요');
+      appendBot('검색어를 아래 입력창에 입력해 주세요.');
+      document.getElementById('inputArea').style.display = 'flex';
+      document.getElementById('searchInput').focus();
+    }
+
+    // ── 직접 검색 ──
+    function searchFaq() {
+      const input = document.getElementById('searchInput');
+      const query = input.value.trim();
+      if (!query) return;
+      appendUser(query);
+      input.value = '';
+
+      const matched = faqs.find(f =>
+        f.question.includes(query) || f.answer.includes(query)
+      );
+
+      if (matched) {
+        appendBot('찾았어요! 😊\n\n❓ ' + matched.question + '\n\n✅ ' + matched.answer);
+        const buttons = [
+          { label: '처음으로 돌아가기', onClick: () => { appendUser('처음으로'); appendBot('처음 화면으로 돌아갈게요 😊'); showCategories(); } }
+        ];
+        appendBotButtons(buttons);
+        document.getElementById('inputArea').style.display = 'none';
+      } else {
+        appendBot('비슷한 내용을 찾지 못했어요 😥\n문의 게시판에 남겨 주시면 빠르게 답변드릴게요.');
+        const buttons = [
+          { label: '처음으로 돌아가기', onClick: () => { appendUser('처음으로'); appendBot('처음 화면으로 돌아갈게요 😊'); showCategories(); } }
+        ];
+        appendBotButtons(buttons);
+        document.getElementById('inputArea').style.display = 'none';
+      }
+    }
+
+    // ── Enter 키로 검색 ──
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter') searchFaq();
+    });
+
+    // ── 말풍선 추가 (봇) ──
+    function appendBot(text) {
+      const body = document.getElementById('chatBody');
+      const div = document.createElement('div');
+      div.className = 'bubble bot';
+      div.innerHTML = `<span class="label">도우미</span><div class="text">${text}</div>`;
+      body.appendChild(div);
+      scrollBottom();
+    }
+
+    // ── 말풍선 추가 (사용자) ──
+    function appendUser(text) {
+      const body = document.getElementById('chatBody');
+      const div = document.createElement('div');
+      div.className = 'bubble user';
+      div.innerHTML = `<span class="label">나</span><div class="text">${text}</div>`;
+      body.appendChild(div);
+      scrollBottom();
+    }
+
+    // ── 버튼 그룹 추가 ──
+    function appendBotButtons(buttons) {
+      const body = document.getElementById('chatBody');
+      const div = document.createElement('div');
+      div.className = 'bubble bot';
+      const group = document.createElement('div');
+      group.className = 'btn-group';
+      buttons.forEach(btn => {
+        const b = document.createElement('button');
+        b.className = 'btn-chip';
+        b.textContent = btn.label;
+        b.onclick = () => {
+          // 버튼 클릭 후 버튼 그룹 비활성화
+          group.querySelectorAll('button').forEach(el => {
+            el.disabled = true;
+            el.style.opacity = '0.5';
+            el.style.cursor = 'default';
+          });
+          btn.onClick();
+        };
+        group.appendChild(b);
+      });
+      div.appendChild(group);
+      body.appendChild(div);
+      scrollBottom();
+    }
+
+    // ── 로딩 애니메이션 ──
+    function appendLoading() {
+      const body = document.getElementById('chatBody');
+      const div = document.createElement('div');
+      div.className = 'bubble bot';
+      div.id = 'loadingBubble';
+      div.innerHTML = `<span class="label">도우미</span><div class="loading-dot"><span></span><span></span><span></span></div>`;
+      body.appendChild(div);
+      scrollBottom();
+    }
+
+    function removeLoading() {
+      const el = document.getElementById('loadingBubble');
+      if (el) el.remove();
+    }
+
+    function scrollBottom() {
+      const body = document.getElementById('chatBody');
+      body.scrollTop = body.scrollHeight;
+    }
+  </script>
+
+</body>
+</html>
